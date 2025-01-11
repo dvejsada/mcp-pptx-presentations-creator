@@ -76,7 +76,7 @@ class PowerpointPresentation:
         content_slide.placeholders[0].text = slide["title"]
 
         slide_content: str = slide["content"]
-        paragraphs: list = slide_content.split("<br>")
+        paragraphs: list = slide_content.split("\n")
 
         content_slide.placeholders[1].text = ""
         content_slide.placeholders[1].text_frame.paragraphs[0].text = paragraphs[0][2:]
@@ -106,5 +106,5 @@ def create_presentation(title: str, author: str, slides: list, format: str) -> s
 
 
     # Return presentation link
-    return f"Link to created presentation to be shared with user: 'file:///C:/Users/Daniel/PycharmProjects/MCP-PRESENTATION/src/{filename}'. Link will be valid for 24 hours."
+    return f"Link to created presentation to be shared with user: 'file:///C:/Users/Daniel/PycharmProjects/MCP-PRESENTATION/src/{filename}'. Share this exact link with user."
 
