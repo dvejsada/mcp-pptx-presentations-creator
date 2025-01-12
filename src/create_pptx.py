@@ -2,6 +2,7 @@ from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
 import re
 import unicodedata
+from upload_file import upload_file_to_s3
 
 def sanitize_filename(filename, replacement=''):
     """
@@ -104,7 +105,8 @@ def create_presentation(title: str, author: str, slides: list, format: str) -> s
 
     # Upload presentation (to be implemented).
 
+    url = upload_file_to_s3(filename)
 
     # Return presentation link
-    return f"Link to created presentation to be shared with user: 'file:///C:/Users/Daniel/PycharmProjects/MCP-PRESENTATION/src/{filename}'. Share this exact link with user."
+    return f"Link to created presentation to be shared with user: {url} . Link is valid for 1 hour."
 
