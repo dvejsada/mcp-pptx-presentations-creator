@@ -16,13 +16,10 @@ def generate_unique_object_name():
 
     return unique_object_name
 
-def upload_file_to_s3(file_name):
+def upload_file_to_s3(file_object):
     """Upload a file to an S3 bucket and return a pre-signed URL valid for 1 hour.
 
-    :param file_name: Path to the file to upload
-    :param bucket: Name of the S3 bucket
-    :param object_name: S3 object name (optional). If not specified, file_name is used
-    :param region: AWS region where the bucket is hosted
+    :param file_object: File-like object to upload
     :return: Pre-signed URL string if successful, else None
     """
     aws_access_key_id = os.environ["aws_access_key_id"]
@@ -38,7 +35,7 @@ def upload_file_to_s3(file_name):
 
     try:
         # Upload the file to S3
-        s3_client.upload_file(file_name, aws_bucket, object_name)
+        s3_client.upload_fileobj(Fileobj=file_object, Bucket=aws_bucket, Key=object_name, ExtraArgs={'ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'})
 
         # Generate a pre-signed URL valid for 1 hour (3600 seconds)
         url = s3_client.generate_presigned_url('get_object',
@@ -48,7 +45,7 @@ def upload_file_to_s3(file_name):
         return url
 
     except FileNotFoundError:
-        print(f"The file {file_name} was not found.")
+        print(f"The file {file_object} was not found.")
         return None
     except NoCredentialsError:
         print("AWS credentials are not available.")

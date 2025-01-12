@@ -43,7 +43,7 @@ USER appuser
 COPY . .
 
 # Expose the port that the application listens on.
-EXPOSE 8957
+EXPOSE 8958
 
 # Run the application.
 CMD python /app/src/run_sse.py

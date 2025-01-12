@@ -1,38 +1,9 @@
 from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
-import re
-import unicodedata
 from upload_file import upload_file_to_s3
+import io
 
-def sanitize_filename(filename, replacement=''):
-    """
-    Remove or replace invalid characters from a filename string.
-
-    Parameters:
-        filename (str): The original filename string.
-        replacement (str): The character to replace invalid characters with.
-
-    Returns:
-        str: The sanitized filename.
-    """
-    filename = unicodedata.normalize('NFKD', filename)
-    # Remove diacritical marks (accents)
-    filename = ''.join(c for c in filename if not unicodedata.combining(c))
-    # Encode to ASCII (ignore errors for characters that can't be encoded)
-    filename = filename.encode('ascii', 'ignore').decode('ascii')
-    # Define a list of invalid characters for filenames on Windows and Unix system
-    invalid_chars = r'<>:"/\\|!?* '
-    # Remove control characters (ASCII codes 0-31)
-    filename = re.sub(r'[\0-\31]', '', filename)
-    # Replace invalid characters with the specified replacement character
-    sanitized = re.sub(r'[{}]+'.format(re.escape(invalid_chars)), replacement, filename)
-    # Remove any leading or trailing whitespace
-    sanitized = sanitized.strip()
-    # Optionally, limit the filename length to a maximum number of characters (e.g., 255)
-    sanitized = sanitized[:255]
-    return sanitized
-
-TEMPLATE_REGULAR = "template_pptx.pptx"
+TEMPLATE_REGULAR = "/app/src/template_pptx.pptx"
 TEMPLATE_WIDE = ""
 
 TITLE_SLIDE_LAYOUT = 0
@@ -90,22 +61,27 @@ class PowerpointPresentation:
             p.alignment = PP_ALIGN.LEFT
             p.level = int(paragraph[1])
 
-    def save(self, filename):
-        self.presentation.save(filename)
+    def save(self):
+        file_like_object = io.BytesIO()
+        self.presentation.save(file_like_object)
+        file_like_object.seek(0)
+        return file_like_object
 
 def create_presentation(title: str, author: str, slides: list, format: str) -> str:
     """Creates new presentation."""
 
     # Create presentation
     presentation = PowerpointPresentation(title, author, slides, format)
-    filename = sanitize_filename(title) + ".pptx"
+
 
     # Save presentation
-    presentation.save(filename)
+    file_object = presentation.save()
 
     # Upload presentation (to be implemented).
 
-    url = upload_file_to_s3(filename)
+    url = upload_file_to_s3(file_object)
+
+    file_object.close()
 
     # Return presentation link
     return f"Link to created presentation to be shared with user: {url} . Link is valid for 1 hour."
