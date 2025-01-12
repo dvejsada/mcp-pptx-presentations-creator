@@ -62,7 +62,7 @@ def create_server():
                                     },
                                     "content": {
                                         "type": "string",
-                                        "description": "Text of the slide in paragraphs. Each paragraph shall be separated by <br>. Text of each paragraph must be prefixed by %0, %1 for indentation level."
+                                        "description": "Text of the slide in paragraphs. Each paragraph shall be separated by newline. Text of each paragraph must be prefixed by %1, %2 for indentation level."
                                     }
                                 },
                                 "required": ["title", "content"]
