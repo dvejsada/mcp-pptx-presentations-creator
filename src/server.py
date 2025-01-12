@@ -39,33 +39,38 @@ def create_server():
                     "properties": {
                         "title": {
                             "type": "string",
-                            "description": "Title of the presentation.",
+                            "description": "Title of the presentation."
                         },
                         "author": {
                             "type": "string",
-                            "description": "Name of the author. If not specified, use the name of the current user.",
+                            "description": "Name of the author."
                         },
                         "format": {
                             "type": "string",
-                            "description": "Format of the presentation, either 4:3 or 16:9. Will default to 4:3 if not specified.",
+                            "enum": ["4:3", "16:9"],
+                            "description": "Format of the presentation, either 4:3 or 16:9. Will default to 4:3 if not specified."
                         },
                         "slides": {
                             "type": "array",
-                            "description": "Individual slides content, to be formatted in bullet points. One slide per list item, do not include title slide.",
+                            "description": "Individual slides content. One slide per list item, do not include title slide.",
                             "items": {
-                                "title": {
-                                    "type": "string",
-                                    "description": "Title of the slide."
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "description": "Title of the slide."
+                                    },
+                                    "content": {
+                                        "type": "string",
+                                        "description": "Text of the slide in paragraphs. Each paragraph shall be separated by <br>. Text of each paragraph must be prefixed by %0, %1 for indentation level."
+                                    }
                                 },
-                                "content": {
-                                    "type": "string",
-                                    "description": "Text of the slide in paragraphs. Each paragraph shall be separated by <br>. Text of each paragraph must be prefixed by %0, %1 or %2 for indentation level."
-                                }
+                                "required": ["title", "content"]
                             }
-                        },
+                        }
                     },
-                    "required": ["title", "slides"],
-                },
+                    "required": ["title", "slides"]
+                }
             ),
         ]
 
