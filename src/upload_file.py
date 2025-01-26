@@ -22,10 +22,10 @@ def upload_file_to_s3(file_object):
     :param file_object: File-like object to upload
     :return: Pre-signed URL string if successful, else None
     """
-    aws_access_key_id = os.environ["aws_access_key_id"]
-    aws_secret_access_key = os.environ["aws_secret_access_key"]
-    aws_region= os.environ['aws_region']
-    aws_bucket = os.environ["aws_bucket"]
+    aws_access_key_id = os.environ["AWS_ACCESS_KEY"]
+    aws_secret_access_key = os.environ["AWS_SECRET_ACCESS_KEY"]
+    aws_region= os.environ['AWS_REGION']
+    aws_bucket = os.environ["S3_BUCKET"]
 
     object_name = generate_unique_object_name()
 
