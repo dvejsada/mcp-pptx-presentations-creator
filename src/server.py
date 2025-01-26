@@ -16,7 +16,7 @@ def create_server():
 
     init_options = InitializationOptions(
         server_name="mcp-pptxcreator",
-        server_version="0.5",
+        server_version="0.6",
         capabilities=server.get_capabilities(
             notification_options=NotificationOptions(),
             experimental_capabilities={},
@@ -33,7 +33,7 @@ def create_server():
         return [
             types.Tool(
                 name="create-powerpoint-presentation",
-                description="Creates powerpoint presentation and return a link for the created file.",
+                description="Creates powerpoint presentation and returns a link for the created file.",
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -49,7 +49,7 @@ def create_server():
                         },
                         "slides": {
                             "type": "array",
-                            "description": "Individual slides content. One slide per list item,.",
+                            "description": "Individual slides content. One slide per list item.",
                             "items": {
                                 "type": "object",
                                 "properties": {
@@ -96,7 +96,7 @@ def create_server():
                 raise ValueError("Missing slides")
 
             if not author:
-                author = "Unknown Author"
+                author = "[ADD YOUR NAME]"
 
             if not pptx_format:
                 pptx_format = "4:3"
