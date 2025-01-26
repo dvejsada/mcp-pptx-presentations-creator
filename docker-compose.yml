@@ -1,0 +1,12 @@
+services:
+  Media_creator:
+    image: georgx22/mcp-presentations:latest
+    container_name: MCP Presentations
+    restart: always
+    ports:
+      - "8958:8958"
+    environment:
+      AWS_ACCESS_KEY: Your AWS access key
+      AWS_REGION: Your AWS region, e.g. us-east-1
+      AWS_SECRET_ACCESS_KEY: Your AWS secret access key
+      S3_BUCKET: Name of your AWS S3 bucket
