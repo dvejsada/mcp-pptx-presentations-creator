@@ -3,10 +3,9 @@ from pptx.enum.text import PP_ALIGN
 from upload_file import upload_file_to_s3
 import io
 
-TEMPLATE_REGULAR = "/app/src/prk_template_4_3.pptx"
-TEMPLATE_WIDE = "/app/src/prk_template_16_9.pptx"
-# TEMPLATE_REGULAR = "prk_template_4_3.pptx"
-# TEMPLATE_WIDE = "prk_template_16_9.pptx"
+TEMPLATE_REGULAR = "/app/src/template_4_3.pptx"
+TEMPLATE_WIDE = "/app/src/template_16_9.pptx"
+
 
 TITLE_SLIDE_LAYOUT = 2
 SECTION_SLIDE_LAYOUT = 7
