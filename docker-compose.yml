@@ -1,7 +1,7 @@
 services:
-  Media_creator:
+  mcp-presentation:
     image: georgx22/mcp-presentations:latest
-    container_name: MCP Presentations
+    container_name: mcp-presentations
     restart: always
     ports:
       - "8958:8958"
