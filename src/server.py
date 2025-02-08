@@ -35,17 +35,14 @@ def create_server():
                 name="create-powerpoint-presentation",
                 description="Creates powerpoint presentation and returns a link for the created file.",
                 inputSchema={
+                    "$schema": "http://json-schema.org/draft-07/schema#",
                     "type": "object",
                     "properties": {
-                        "author": {
-                            "type": "string",
-                            "description": "Name of the author."
-                        },
                         "format": {
                             "type": "string",
                             "enum": ["4:3", "16:9"],
-                            "default":"4:3",
-                            "description": "Format of the presentation, either 4:3 or 16:9. Will default to 4:3 if not specified."
+                            "default": "4:3",
+                            "description": "Format of the presentation, either 4:3 or 16:9. Defaults to 4:3 if not specified."
                         },
                         "slides": {
                             "type": "array",
@@ -54,24 +51,61 @@ def create_server():
                                 "type": "object",
                                 "properties": {
                                     "slide_type": {
-                                        "type": "integer",
-                                        "description": "Type of slide layout - use 0 for title slide, 1 for section divider or 2 for text content slide.",
+                                        "type": "string",
+                                        "description": "Type of slide layout. Title slide can be used only as a first slide.",
+                                        "enum": ["title", "section", "content"]
                                     },
                                     "slide_title": {
                                         "type": "string",
                                         "description": "Title of the slide."
                                     },
-                                    "slide_text": {
+                                    "author": {
                                         "type": "string",
-                                        "description": "Text of the slide in paragraphs. Each paragraph shall be separated by newline. Text of each paragraph must be prefixed by %1 or %2 for indentation level. Do not include for title and section slide layouts."
+                                        "description": "Name of the author. Required for title slide."
+                                    },
+                                    "slide_text": {
+                                        "type": "array",
+                                        "description": "An array of text items with indentation levels. Required for content slides.",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "text": {
+                                                    "type": "string",
+                                                    "description": "Text bullet point content."
+                                                },
+                                                "indentation_level": {
+                                                    "type": "integer",
+                                                    "description": "Indentation level for the bullet point (1 for no indentation).",
+                                                    "minimum": 1,
+                                                    "maximum": 3,
+                                                    "default": 1
+                                                }
+                                            },
+                                            "required": ["text","indentation_level"]
+                                        }
                                     }
                                 },
-                                "required": ["slide_type","title"]
+                                "required": ["slide_type"],
+                                "oneOf": [
+                                    {
+                                        "properties": {"slide_type": {"const": "title"}},
+                                        "required": ["slide_title", "author"]
+                                    },
+                                    {
+                                        "properties": {"slide_type": {"const": "section"}},
+                                        "required": ["slide_title"]
+                                    },
+                                    {
+                                        "properties": {"slide_type": {"const": "content"}},
+                                        "required": ["slide_title", "slide_text"]
+                                    }
+                                ]
                             }
                         }
                     },
                     "required": ["slides"]
                 }
+
             ),
         ]
 
@@ -85,23 +119,18 @@ def create_server():
         if not arguments:
             raise ValueError("Missing arguments")
 
-
         if name == "create-powerpoint-presentation":
 
-            author: str = arguments.get("author")
             pptx_format: str = arguments.get("format")
             slides: list = arguments.get("slides")
 
             if not slides:
                 raise ValueError("Missing slides")
 
-            if not author:
-                author = "[ADD YOUR NAME]"
-
             if not pptx_format:
                 pptx_format = "4:3"
 
-            result_text = create_presentation(author,slides, pptx_format)
+            result_text = create_presentation(slides, pptx_format)
 
             return [
                 types.TextContent(
@@ -114,5 +143,3 @@ def create_server():
             raise ValueError(f"Unknown tool: {name}")
 
     return server, init_options
-
-

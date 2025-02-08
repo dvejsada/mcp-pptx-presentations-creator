@@ -5,9 +5,9 @@ from pathlib import Path
 import io
 import logging
 
-TITLE_SLIDE_LAYOUT = 2
-SECTION_SLIDE_LAYOUT = 7
-TITLE_AND_CONTENT_LAYOUT = 4
+TITLE_LAYOUT = 2
+SECTION_LAYOUT = 7
+CONTENT_LAYOUT = 4
 
 # Create a logger
 logger = logging.getLogger(__name__)
@@ -37,12 +37,12 @@ def load_templates():
 
 class PowerpointPresentation:
 
-    def __init__(self, author: str, slides: list, format: str):
+    def __init__(self, slides: list, format: str):
 
-        self.author = author
-        self.slides: list = slides
+        # Loads templates
         self.template_regular, self.template_wide = load_templates()
 
+        # Create presentation based no the format used
         if format == "4:3":
             self.presentation = Presentation(self.template_regular)
         elif format == "16:9":
@@ -50,44 +50,42 @@ class PowerpointPresentation:
         else:
             self.presentation = Presentation(self.template_regular)
 
-        for slide in self.slides:
-            if slide["slide_type"] == 2:
+        # Create
+        for slide in slides:
+            if slide["slide_type"] == "content":
                 self.create_content_slide(slide)
-            elif slide["slide_type"] == 1:
-                self.create_section_header_slide(slide)
-            elif slide["slide_type"] == 0:
+            elif slide["slide_type"] == "section":
+                self.create_section_slide(slide)
+            elif slide["slide_type"] == "title":
                 self.create_title_slide(slide)
 
 
     def create_title_slide(self, slide: dict):
-        title_layout = self.presentation.slide_layouts[TITLE_SLIDE_LAYOUT]
+        title_layout = self.presentation.slide_layouts[TITLE_LAYOUT]
         title_slide = self.presentation.slides.add_slide(title_layout)
         title_slide.placeholders[0].text = slide["slide_title"]
-        title_slide.placeholders[1].text = self.author
+        title_slide.placeholders[1].text = slide["author"]
 
-    def create_section_header_slide(self, slide: dict):
-        section_layout = self.presentation.slide_layouts[SECTION_SLIDE_LAYOUT]
+    def create_section_slide(self, slide: dict):
+        section_layout = self.presentation.slide_layouts[SECTION_LAYOUT]
         section_slide = self.presentation.slides.add_slide(section_layout)
         section_slide.placeholders[0].text = slide["slide_title"]
 
-    def create_content_slide(self, slide: dict[str]):
-        content_layout = self.presentation.slide_layouts[TITLE_AND_CONTENT_LAYOUT]
+    def create_content_slide(self, slide: dict):
+        content_layout = self.presentation.slide_layouts[CONTENT_LAYOUT]
         content_slide = self.presentation.slides.add_slide(content_layout)
         content_slide.placeholders[0].text = slide["slide_title"]
 
-        slide_content: str = slide["slide_text"]
-        paragraphs: list = slide_content.split("\n")
-
         content_slide.placeholders[1].text = ""
-        content_slide.placeholders[1].text_frame.paragraphs[0].text = paragraphs[0][2:]
+        content_slide.placeholders[1].text_frame.paragraphs[0].text = slide["slide_text"][0]["text"]
         content_slide.placeholders[1].text_frame.paragraphs[0].alignment = PP_ALIGN.LEFT
-        content_slide.placeholders[1].text_frame.paragraphs[0].level = int(paragraphs[0][1])
+        content_slide.placeholders[1].text_frame.paragraphs[0].level = int(slide["slide_text"][0]["indentation_level"])
 
-        for paragraph in paragraphs[1:]:
+        for paragraph in slide["slide_text"][1:]:
             p = content_slide.placeholders[1].text_frame.add_paragraph()
-            p.text = paragraph[2:]
+            p.text = paragraph["text"]
             p.alignment = PP_ALIGN.LEFT
-            p.level = int(paragraph[1])
+            p.level = int(paragraph["indentation_level"])
 
     def save(self):
         file_like_object = io.BytesIO()
@@ -95,11 +93,11 @@ class PowerpointPresentation:
         file_like_object.seek(0)
         return file_like_object
 
-def create_presentation(author: str, slides: list, format: str) -> str:
+def create_presentation(slides: list, format: str) -> str:
     """Creates new presentation."""
 
     # Create presentation
-    presentation = PowerpointPresentation(author, slides, format)
+    presentation = PowerpointPresentation(slides, format)
 
     # Save presentation
     file_object = presentation.save()
