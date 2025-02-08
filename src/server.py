@@ -16,7 +16,7 @@ def create_server():
 
     init_options = InitializationOptions(
         server_name="mcp-pptxcreator",
-        server_version="0.6",
+        server_version="0.7",
         capabilities=server.get_capabilities(
             notification_options=NotificationOptions(),
             experimental_capabilities={},
@@ -33,9 +33,10 @@ def create_server():
         return [
             types.Tool(
                 name="create-powerpoint-presentation",
-                description="Creates powerpoint presentation and returns a link for the created file.",
+                description="Creates powerpoint presentation as pptx file.",
                 inputSchema={
                     "$schema": "http://json-schema.org/draft-07/schema#",
+                    "title": "Input schema for presentation creation tool. Provide only JSON in single line.",
                     "type": "object",
                     "properties": {
                         "format": {
