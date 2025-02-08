@@ -22,14 +22,14 @@ def load_templates():
         template_4_3 = custom_template_4_3
         logger.info("Custom 4:3 template loaded.")
     else:
-        template_4_3 = Path("/app/src/general_template_4_3.pptx")
+        template_4_3 = Path("/app/src/template_general_4_3.pptx")
         logger.info("General 4:3 template loaded.")
 
     if custom_template_4_3.exists():
         template_16_9 = custom_template_16_9
         logger.info("Custom 16:9 template loaded.")
     else:
-        template_16_9 = Path("/app/src/general_template_16_9.pptx")
+        template_16_9 = Path("/app/src/template_general_16_9.pptx")
         logger.info("General 16:9 template loaded.")
 
     return str(template_4_3), str(template_16_9)
