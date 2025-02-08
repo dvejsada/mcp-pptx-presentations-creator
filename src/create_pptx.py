@@ -1,6 +1,6 @@
 from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
-from upload_file import upload_file_to_s3
+from upload_file import upload_file
 from pathlib import Path
 import io
 import logging
@@ -13,23 +13,23 @@ CONTENT_LAYOUT = 4
 logger = logging.getLogger(__name__)
 
 def load_templates():
-    """Loads presentation teplates"""
+    """Loads presentation templates"""
 
-    custom_template_4_3 = Path("../templates/template_4_3.pptx")
-    custom_template_16_9 = Path("../templates/template_4_3.pptx")
+    custom_template_4_3 = Path("/app/templates/template_4_3.pptx")
+    custom_template_16_9 = Path("/app/templates/template_4_3.pptx")
 
     if custom_template_4_3.exists():
         template_4_3 = custom_template_4_3
         logger.info("Custom 4:3 template loaded.")
     else:
-        template_4_3 = Path("general_template_4_3.pptx")
+        template_4_3 = Path("/app/src/general_template_4_3.pptx")
         logger.info("General 4:3 template loaded.")
 
     if custom_template_4_3.exists():
         template_16_9 = custom_template_16_9
         logger.info("Custom 16:9 template loaded.")
     else:
-        template_16_9 = Path("general_template_16_9.pptx")
+        template_16_9 = Path("/app/src/general_template_16_9.pptx")
         logger.info("General 16:9 template loaded.")
 
     return str(template_4_3), str(template_16_9)
@@ -103,9 +103,9 @@ def create_presentation(slides: list, format: str) -> str:
     file_object = presentation.save()
 
     # Upload presentation.
-    url = upload_file_to_s3(file_object)
+    text = upload_file(file_object)
     file_object.close()
 
     # Return presentation link
-    return f"Link to created presentation to be shared with user: {url} . Link is valid for 1 hour."
+    return text
 

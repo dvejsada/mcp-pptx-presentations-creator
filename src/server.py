@@ -33,9 +33,10 @@ def create_server():
         return [
             types.Tool(
                 name="create-powerpoint-presentation",
-                description="Creates powerpoint presentation and returns a link for the created file.",
+                description="Creates powerpoint presentation as pptx file.",
                 inputSchema={
                     "$schema": "http://json-schema.org/draft-07/schema#",
+                    "title": "Input schema for presentation creation tool. Provide only JSON in single line.",
                     "type": "object",
                     "properties": {
                         "format": {
