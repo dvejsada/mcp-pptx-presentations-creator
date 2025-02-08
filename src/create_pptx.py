@@ -1,15 +1,39 @@
 from pptx import Presentation
 from pptx.enum.text import PP_ALIGN
 from upload_file import upload_file_to_s3
+from pathlib import Path
 import io
-
-TEMPLATE_REGULAR = "/app/src/template_4_3.pptx"
-TEMPLATE_WIDE = "/app/src/template_16_9.pptx"
-
+import logging
 
 TITLE_SLIDE_LAYOUT = 2
 SECTION_SLIDE_LAYOUT = 7
 TITLE_AND_CONTENT_LAYOUT = 4
+
+# Create a logger
+logger = logging.getLogger(__name__)
+
+def load_templates():
+    """Loads presentation teplates"""
+
+    custom_template_4_3 = Path("../templates/template_4_3.pptx")
+    custom_template_16_9 = Path("../templates/template_4_3.pptx")
+
+    if custom_template_4_3.exists():
+        template_4_3 = custom_template_4_3
+        logger.info("Custom 4:3 template loaded.")
+    else:
+        template_4_3 = Path("general_template_4_3.pptx")
+        logger.info("General 4:3 template loaded.")
+
+    if custom_template_4_3.exists():
+        template_16_9 = custom_template_16_9
+        logger.info("Custom 16:9 template loaded.")
+    else:
+        template_16_9 = Path("general_template_16_9.pptx")
+        logger.info("General 16:9 template loaded.")
+
+    return str(template_4_3), str(template_16_9)
+
 
 class PowerpointPresentation:
 
@@ -17,14 +41,14 @@ class PowerpointPresentation:
 
         self.author = author
         self.slides: list = slides
+        self.template_regular, self.template_wide = load_templates()
 
         if format == "4:3":
-            self.presentation = Presentation(TEMPLATE_REGULAR)
+            self.presentation = Presentation(self.template_regular)
         elif format == "16:9":
-            self.presentation = Presentation(TEMPLATE_WIDE)
+            self.presentation = Presentation(self.template_wide)
         else:
-            self.presentation = Presentation(TEMPLATE_REGULAR)
-
+            self.presentation = Presentation(self.template_regular)
 
         for slide in self.slides:
             if slide["slide_type"] == 2:
@@ -33,6 +57,7 @@ class PowerpointPresentation:
                 self.create_section_header_slide(slide)
             elif slide["slide_type"] == 0:
                 self.create_title_slide(slide)
+
 
     def create_title_slide(self, slide: dict):
         title_layout = self.presentation.slide_layouts[TITLE_SLIDE_LAYOUT]
@@ -76,14 +101,11 @@ def create_presentation(author: str, slides: list, format: str) -> str:
     # Create presentation
     presentation = PowerpointPresentation(author, slides, format)
 
-
     # Save presentation
     file_object = presentation.save()
 
-    # Upload presentation (to be implemented).
-
+    # Upload presentation.
     url = upload_file_to_s3(file_object)
-
     file_object.close()
 
     # Return presentation link
