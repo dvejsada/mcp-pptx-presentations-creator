@@ -7,16 +7,16 @@ import logging
 
 def create_server():
     logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger("mcp-pptxcreator")
+    logger = logging.getLogger("mcp-office-documents")
     logger.setLevel(logging.DEBUG)
-    logger.info("Starting MCP Presentation")
+    logger.info("Starting MCP Office Docs")
 
     # Initialize base MCP server
-    server = Server("pptx_presentation")
+    server = Server("office_documents")
 
     init_options = InitializationOptions(
-        server_name="mcp-pptxcreator",
-        server_version="0.8",
+        server_name="mcp-office-documents",
+        server_version="0.1",
         capabilities=server.get_capabilities(
             notification_options=NotificationOptions(),
             experimental_capabilities={},
@@ -108,6 +108,22 @@ def create_server():
                 }
 
             ),
+            types.Tool(
+                name="create-word-document",
+                description="Creates a Word document (docx) from markdown input.",
+                inputSchema={
+                    "$schema": "http://json-schema.org/draft-07/schema#",
+                    "title": "Input schema for Word document creation tool",
+                    "type": "object",
+                    "properties": {
+                        "markdown_content": {
+                            "type": "string",
+                            "description": "The content of the document in Markdown format. Supports headings (# for h1, ## for h2, etc.), **bold**, *italic*, [links](url), tables using | syntax, ordered lists (1. item) and unordered lists (* item). Nested lists are supported as well."
+                        }
+                    },
+                    "required": ["markdown_content"]
+                }
+            )
         ]
 
     @server.call_tool()
@@ -139,6 +155,9 @@ def create_server():
                     text=result_text
                 )
             ]
+
+        elif name == "create-word-document":
+
 
         else:
             raise ValueError(f"Unknown tool: {name}")

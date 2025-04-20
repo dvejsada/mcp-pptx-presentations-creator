@@ -103,7 +103,7 @@ def create_presentation(slides: list, format: str) -> str:
     file_object = presentation.save()
 
     # Upload presentation.
-    text = upload_file(file_object)
+    text = upload_file(file_object, "pptx")
     file_object.close()
 
     # Return presentation link

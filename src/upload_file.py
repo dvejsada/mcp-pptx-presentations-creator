@@ -33,7 +33,7 @@ elif UPLOAD_STRATEGY == "S3":
 else:
     logger.error("Invalid upload strategy, set either to LOCAL or S3")
 
-def generate_unique_object_name():
+def generate_unique_object_name(suffix):
     """Generate a unique object name using UUID and preserve the file extension.
 
     :return: Unique object name with the same file extension
@@ -42,18 +42,18 @@ def generate_unique_object_name():
     # Generate a UUID
     unique_id = str(uuid.uuid4())
     # Combine UUID and extension
-    unique_object_name = f"{unique_id}.pptx"
+    unique_object_name = f"{unique_id}.{suffix}"
 
     return unique_object_name
 
-def upload_file(file_object):
+def upload_file(file_object, suffix):
     """Upload a file to an S3 bucket and return a pre-signed URL valid for 1 hour.
 
     :param file_object: File-like object to upload
     :return: Pre-signed URL string if successful, else None
     """
 
-    object_name = generate_unique_object_name()
+    object_name = generate_unique_object_name(suffix)
 
     if UPLOAD_STRATEGY == "LOCAL":
         return upload_to_local_folder(file_object, object_name)
@@ -68,9 +68,18 @@ def upload_to_s3(file_object, file_name):
     s3_client = boto3.client('s3', region_name=AWS_REGION, aws_access_key_id=AWS_ACCESS_KEY,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY, endpoint_url=f'https://s3.{AWS_REGION}.amazonaws.com')
 
+    if "pptx" in file_name:
+        content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    elif "docx" in file_name:
+        content_type = ""
+    elif "msg" in file_name:
+        content_type = ""
+    else:
+        raise ValueError("Unknown file type")
+
     try:
         # Upload the file to S3
-        s3_client.upload_fileobj(Fileobj=file_object, Bucket=S3_BUCKET, Key=file_name, ExtraArgs={'ContentType': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'})
+        s3_client.upload_fileobj(Fileobj=file_object, Bucket=S3_BUCKET, Key=file_name, ExtraArgs={'ContentType': content_type})
 
         # Generate a pre-signed URL valid for 1 hour (3600 seconds)
         url = s3_client.generate_presigned_url('get_object',
@@ -78,7 +87,7 @@ def upload_to_s3(file_object, file_name):
                                                        'Key': file_name},
                                                ExpiresIn=3600)
 
-        return f"Link to created presentation to be shared with user in markdown format: {url} . Link is valid for 1 hour."
+        return f"Link to created document to be shared with user in markdown format: {url} . Link is valid for 1 hour."
 
     except FileNotFoundError:
         print(f"The file {file_object} was not found.")
@@ -91,10 +100,10 @@ def upload_to_s3(file_object, file_name):
         return None
 
 def upload_to_local_folder(file_object, file_name):
-    save_path = f'/app/output/{file_name}'  # Replace with your desired directory
 
+    save_path = f'{file_name}'
 
     with open(save_path, 'wb') as f:
         f.write(file_object.read())
 
-    return f"Inform user that the presentation {file_name} was saved to his output folder."
+    return f"Inform user that the document {file_name} was saved to his output folder."
