@@ -63,7 +63,6 @@ def add_hyperlink(paragraph, text, url, color="0000FF", underline=True):
 
     paragraph._p.append(hyperlink)
 
-
 def add_table(html_element, document: Document):
     # Find all rows
     rows = html_element.find_all('tr')
@@ -201,7 +200,7 @@ def process_list_item_content(li, paragraph):
             # Handle any other element with text
             paragraph.add_run(child.text)
 
-def markdown_to_word(markdown_content, word_file):
+def markdown_to_word(markdown_content):
     # Converting Markdown to HTML
     try:
         html_content = markdown.markdown(markdown_content, extensions=['tables', 'sane_lists'])
@@ -246,56 +245,3 @@ def markdown_to_word(markdown_content, word_file):
     file_like_object.close()
 
     return url
-
-if __name__ == "__main__":
-    md = """# Project Title
-
-Simple overview of use/purpose.
-
-## Description
-
-An in-depth paragraph about your project and overview of use.
-
-
-## Help
-
-Any advise for common problems or issues.
-
-## Authors
-
-Contributors names and contact info
-
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
-
-## Version History
-
-1. 0.2
-    * See **commit change** or See **release history
-    * See other fings
-2. 0.2
-    1. See **commit change** or See **release history**
-    2. see other things
-        * Third level list
-
-## License
-
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
-
-| Feature | Description | Example |
-|---------|-------------|---------|
-| **Formatting** | Support for *text* styles | **Bold** and *italic* |
-| [Links](#) | Hyperlinks to resources | [Documentation](https://example.com) |
-| Lists | Ordered and unordered | See the list section |
-| Alignment | Text alignment options | Right-aligned text |
-
-## Acknowledgments
-
-Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
-"""
-    print(markdown_to_word(md, "test.docx"))

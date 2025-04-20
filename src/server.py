@@ -4,6 +4,8 @@ from mcp.server.models import InitializationOptions
 from create_pptx import create_presentation
 import logging
 
+from src.create_docx import markdown_to_word
+
 
 def create_server():
     logging.basicConfig(level=logging.DEBUG)
@@ -157,7 +159,9 @@ def create_server():
             ]
 
         elif name == "create-word-document":
+            markdown_text: str = arguments.get("markdown_content")
 
+            markdown_to_word(markdown_text)
 
         else:
             raise ValueError(f"Unknown tool: {name}")
