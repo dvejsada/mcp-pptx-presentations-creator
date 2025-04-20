@@ -101,7 +101,7 @@ def upload_to_s3(file_object, file_name):
 
 def upload_to_local_folder(file_object, file_name):
 
-    save_path = f'{file_name}'
+    save_path = f'/app/output/{file_name}'
 
     with open(save_path, 'wb') as f:
         f.write(file_object.read())
