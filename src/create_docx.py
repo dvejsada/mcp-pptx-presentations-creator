@@ -1,5 +1,4 @@
 from os.path import exists
-import markdown
 import io
 from docx import Document
 from bs4 import BeautifulSoup
@@ -12,56 +11,30 @@ from pathlib import Path
 
 def load_templates():
     """Loads presentation templates"""
-
     custom_template = Path("/app/templates/template.docx")
-
+    """ custom_template = Path("template.docx")"""
     if exists(custom_template):
         template = custom_template
-
     else:
         template = Path("/app/src/template.docx")
-
     return str(template)
 
 def add_heading(doc, element, level=1):
-    """
-    Add a heading
-
-    Parameters:
-    doc: documents to which the heading should be added
-    element: element with heading
-    level: The heading level (1-9)
-
-    """
-    # Add a heading first (this will be empty initially)
+    """Add a heading"""
     heading = doc.add_heading('', level=level)
-
     child_elements(element, heading)
 
 def add_hyperlink(paragraph, text, url, color="0000FF", underline=True):
-    """
-    Adds a hyperlink to a paragraph at the current run position.
-
-    :param paragraph: The paragraph to add the hyperlink to.
-    :param text: The display text for the hyperlink.
-    :param url: The URL the hyperlink points to.
-    :param color: Hex code for the hyperlink text color.
-    :param underline: Whether to underline the hyperlink text.
-    """
-
-    # This gets access to the document.xml.rels file and gets a new relation id
+    """Adds a hyperlink to a paragraph"""
     part = paragraph.part
     r_id = part.relate_to(url, RELATIONSHIP_TYPE.HYPERLINK, is_external=True)
 
-    # Create the hyperlink element
     hyperlink = OxmlElement('w:hyperlink')
     hyperlink.set(qn('r:id'), r_id)
 
-    # Create a new run element
     new_run = OxmlElement('w:r')
     rPr = OxmlElement('w:rPr')
 
-    # Set run properties
     if underline:
         u = OxmlElement('w:u')
         u.set(qn('w:val'), 'single')
@@ -78,42 +51,26 @@ def add_hyperlink(paragraph, text, url, color="0000FF", underline=True):
 
     paragraph._p.append(hyperlink)
 
-def add_table(html_element, document: Document):
-    # Find all rows
+def add_table(html_element, document):
     rows = html_element.find_all('tr')
-
-    # Determine number of columns (use the row with the most cells)
     max_cols = max(len(row.find_all(['th', 'td'])) for row in rows)
 
-    # Create a Word table
     word_table = document.add_table(rows=len(rows), cols=max_cols)
-    word_table.style = 'Table Grid'  # Apply a table style
+    word_table.style = 'Table Grid'
 
-    # Process each row
     for i, row in enumerate(rows):
         cells = row.find_all(['th', 'td'])
-
-        # Process each cell
         for j, cell in enumerate(cells):
-            if j < max_cols:  # Ensure we don't exceed the number of columns
-                # Get style attributes if any
+            if j < max_cols:
                 style = cell.get('style', '')
-
-                # Add content to Word table cell
                 word_cell = word_table.cell(i, j)
 
-                # Clear the default paragraph text that's automatically created
-                # when a cell is created
                 if word_cell.paragraphs:
                     word_cell.paragraphs[0].clear()
 
-                # Use the cell's first paragraph to add styled content
                 cell_paragraph = word_cell.paragraphs[0]
-
-                # Process the cell content while preserving formatting
                 child_elements(cell, cell_paragraph)
 
-                # Apply alignment if specified in style
                 if 'text-align: right' in style:
                     for paragraph in word_cell.paragraphs:
                         paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
@@ -125,12 +82,9 @@ def add_table(html_element, document: Document):
                         paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
 
 def child_elements(element, paragraph):
-    """
-    Process child elements and add them to the paragraph.
-    """
+    """Process child elements and add them to the paragraph."""
     for child in element.children:
         if isinstance(child, str):
-            # If it's plain text, add it as a run
             if child.strip():
                 paragraph.add_run(child)
         elif child.name == 'strong':
@@ -140,131 +94,98 @@ def child_elements(element, paragraph):
         elif child.name == 'a':
             add_hyperlink(paragraph, child.text, child.get('href'))
         elif child.name in ['ul', 'ol']:
-            # Skip lists - they're handled in process_list
+            # Skip lists - they're handled separately
             continue
         elif hasattr(child, 'children') and list(child.children):
-            # Recursively process other elements with children
             child_elements(child, paragraph)
         elif hasattr(child, 'text'):
-            # Handle any other element with text
             paragraph.add_run(child.text)
 
-
-def process_list(list_element, doc, base_style, level=0):
-    """
-    Process a list element (ul or ol) and handle nested lists of any type.
-
-    Parameters:
-    list_element: The list element to process (ul or ol)
-    doc: The document to add the list to
-    base_style: The base style ('List Bullet' or 'List Number')
-    level: The nesting level (0 for top level, 1+ for nested levels)
-    """
-    # Different types of list styles in Word
+def process_list(list_element, doc, level=0):
+    """Process a list element and all its items with proper nesting."""
+    # Different types of list styles in Word based on level
     bullet_styles = ['List Bullet', 'List Bullet 2', 'List Bullet 3']
     number_styles = ['List Number', 'List Number 2', 'List Number 3']
 
     # Determine which style array to use based on the list type
-    style_array = bullet_styles if base_style.startswith('List Bullet') else number_styles
+    style_array = number_styles if list_element.name == 'ol' else bullet_styles
 
-    # Get the appropriate style for this level
+    # Get the appropriate style for this level (capped at highest available level)
     style = style_array[min(level, len(style_array) - 1)]
 
-    # Process each list item
+    # Process each list item at this level
     for li in list_element.find_all('li', recursive=False):
         # Create paragraph with appropriate list style
-        par = doc.add_paragraph(style=style)
+        paragraph = doc.add_paragraph(style=style)
 
-        # Add the content of the list item (excluding nested lists)
-        process_list_item_content(li, par)
+        # Process direct content of the list item (excluding nested lists)
+        for child in li.children:
+            if isinstance(child, str):
+                # Add text content
+                if child.strip():
+                    paragraph.add_run(child.strip())
+            elif child.name in ['ul', 'ol']:
+                # Skip nested lists - they'll be processed separately
+                continue
+            elif child.name == 'strong':
+                paragraph.add_run(child.text).bold = True
+            elif child.name == 'em':
+                paragraph.add_run(child.text).italic = True
+            elif child.name == 'a':
+                add_hyperlink(paragraph, child.text, child.get('href'))
+            elif hasattr(child, 'text'):
+                paragraph.add_run(child.text)
 
-        # Process any nested lists
+        # Now process any nested lists within this list item
         for nested_list in li.find_all(['ul', 'ol'], recursive=False):
-            if nested_list.name == 'ul':
-                # For nested bullets, increment level if parent is also bullets
-                nested_level = level + 1 if base_style.startswith('List Bullet') else 0
-                process_list(nested_list, doc, 'List Bullet', nested_level)
-            else:  # ol
-                # For nested numbers, increment level if parent is also numbers
-                nested_level = level + 1 if base_style.startswith('List Number') else 0
-                process_list(nested_list, doc, 'List Number', nested_level)
+            process_list(nested_list, doc, level + 1)
 
 
-def process_list_item_content(li, paragraph):
-    """
-    Process only the direct content of a list item, excluding nested lists.
-    """
-    # Create a copy of the list item to work with
-    li_copy = BeautifulSoup(str(li), 'html.parser').li
-
-    # Remove any nested lists from the copy
-    for nested_list in li_copy.find_all(['ul', 'ol']):
-        nested_list.extract()
-
-    # Now process the remaining content
-    for child in li_copy.children:
-        if isinstance(child, str):
-            # If it's plain text, add it as a run
-            if child.strip():
-                paragraph.add_run(child.strip())  # Strip whitespace
-        elif child.name == 'strong':
-            paragraph.add_run(child.text).bold = True
-        elif child.name == 'em':
-            paragraph.add_run(child.text).italic = True
-        elif child.name == 'a':
-            add_hyperlink(paragraph, child.text, child.get('href'))
-        elif hasattr(child, 'children') and list(child.children):
-            # Recursively process other elements with children (except ul/ol)
-            if child.name not in ['ul', 'ol']:
-                child_elements(child, paragraph)
-        elif hasattr(child, 'text') and child.name not in ['ul', 'ol']:
-            # Handle any other element with text
-            paragraph.add_run(child.text)
-
-def markdown_to_word(markdown_content):
-    # Converting Markdown to HTML
-    try:
-        html_content = markdown.markdown(markdown_content, extensions=['tables', 'sane_lists'])
-
-    except Exception as e:
-        return f"Error in markdown: {e}"
-
+def html_to_word(html_content):
+    """Convert HTML directly to Word document."""
     path = load_templates()
-
-    # Creating a new Word Document
     doc = Document(path)
 
-    # Converting HTML to text and add it to the Word Document
+    # Parse the HTML content
     soup = BeautifulSoup(html_content, 'html.parser')
-
-    # Adding content to the Word Document
+    body = soup.body or soup  # Use body if available, otherwise use the soup object
 
     try:
-        for element in soup:
-            if element.name == 'h1':
-                add_heading(doc, element, level=1)
-            elif element.name == 'h2':
-                add_heading(doc, element, level=2)
-            elif element.name == 'h3':
-                add_heading(doc, element, level=3)
-            elif element.name == 'p':
-                paragraph = doc.add_paragraph()
-                child_elements(element, paragraph)
-            elif element.name == 'ul':
-                process_list(element, doc, 'List Bullet', 0)
-            elif element.name == 'ol':
-                process_list(element, doc, 'List Number', 0)
-            elif element.name == 'table':
-                add_table(element, doc)
+        # Process each element in the body
+        for element in body.children:
+            if hasattr(element, 'name'):
+                if element.name == 'h1':
+                    add_heading(doc, element, level=1)
+                elif element.name == 'h2':
+                    add_heading(doc, element, level=2)
+                elif element.name == 'h3':
+                    add_heading(doc, element, level=3)
+                elif element.name == 'h4':
+                    add_heading(doc, element, level=4)
+                elif element.name == 'p':
+                    paragraph = doc.add_paragraph()
+                    child_elements(element, paragraph)
+                elif element.name == 'ul' or element.name == 'ol':
+                    process_list(element, doc, 0)
+                elif element.name == 'table':
+                    add_table(element, doc)
     except Exception as e:
         return f"Error in parsing html: {e}"
 
+    # Save the document
     file_like_object = io.BytesIO()
     doc.save(file_like_object)
     file_like_object.seek(0)
 
     url = upload_file(file_like_object, "docx")
-
     file_like_object.close()
 
     return url
+
+
+if __name__ == "__main__":
+    html = "<!DOCTYPE html><html><body><h1>Document Testing Lists and Tables</h1><h2>Introduction</h2><p>This document tests the formatting of various HTML elements, with focus on nested lists and tables.</p><h2>List Examples</h2><h3>Simple Lists</h3><h4>Bullet List:</h4><ul><li>Item 1</li><li>Item 2</li><li>Item 3</li></ul><h4>Numbered List:</h4><ol><li>First item</li><li>Second item</li><li>Third item</li></ol><h3>Nested Lists</h3><h4>Nested Bullet Lists:</h4><ul><li>Main item 1<ul><li>Sub-item 1.1</li><li>Sub-item 1.2<ul><li>Sub-sub-item 1.2.1</li><li>Sub-sub-item 1.2.2</li></ul></li></ul></li><li>Main item 2<ul><li>Sub-item 2.1</li></ul></li></ul><h4>Nested Numbered Lists:</h4><ol><li>First level item 1<ol><li>Second level item 1.1</li><li>Second level item 1.2<ol><li>Third level item 1.2.1</li><li>Third level item 1.2.2</li></ol></li></ol></li><li>First level item 2<ol><li>Second level item 2.1</li></ol></li></ol><h4>Mixed Nested Lists:</h4><ul><li>Bullet main item<ol><li>Numbered sub-item 1</li><li>Numbered sub-item 2<ul><li>Bullet sub-sub-item</li><li>Another bullet sub-sub-item</li></ul></li></ol></li></ul><ol><li>Numbered main item<ul><li>Bullet sub-item 1</li><li>Bullet sub-item 2<ol><li>Numbered sub-sub-item</li><li>Another numbered sub-sub-item</li></ol></li></ul></li></ol><h3>Multiple Separate Lists</h3><p>Here we test if consecutive lists restart numbering properly:</p><ol><li>List 1, Item 1</li><li>List 1, Item 2</li></ol><p>Some text between lists.</p><ol><li>List 2, Item 1 (should start at 1 again)</li><li>List 2, Item 2</li></ol><h2>Table Examples</h2><h3>Simple Table</h3><table border=\"1\"><tr><th>Header 1</th><th>Header 2</th><th>Header 3</th></tr><tr><td>Cell 1</td><td>Cell 2</td><td>Cell 3</td></tr><tr><td>Cell 4</td><td>Cell 5</td><td>Cell 6</td></tr></table><h3>Table with Formatting</h3><table border=\"1\"><tr><th>Name</th><th>Description</th><th>Status</th></tr><tr><td><strong>Project A</strong></td><td><em>An important initiative</em></td><td>Active</td></tr><tr><td><strong>Project B</strong></td><td><em>Secondary project</em></td><td>Pending</td></tr></table><h2>Text Formatting and Links</h2><p>This paragraph has <strong>bold text</strong>, <em>italic text</em>, and <a href=\"https://www.example.com\">a hyperlink</a>.</p></body></html>"
+
+    html_to_word(html)
+
+

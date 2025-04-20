@@ -3,7 +3,7 @@ from mcp.server import Server, NotificationOptions
 from mcp.server.models import InitializationOptions
 from create_pptx import create_presentation
 import logging
-from create_docx import markdown_to_word
+from create_docx import html_to_word
 
 
 def create_server():
@@ -111,18 +111,18 @@ def create_server():
             ),
             types.Tool(
                 name="create-word-document",
-                description="Creates a Word document (docx) from markdown input.",
+                description="Creates a Word document (docx) from HTML input.",
                 inputSchema={
                     "$schema": "http://json-schema.org/draft-07/schema#",
                     "title": "Input schema for Word document creation tool",
                     "type": "object",
                     "properties": {
-                        "markdown_content": {
+                        "html_content": {
                             "type": "string",
-                            "description": "The content of the document in Markdown format. Supports headings (# for h1, ## for h2, etc.), **bold**, *italic*, [links](url), tables using | syntax, ordered lists (1. item) and unordered lists (* item). Nested lists are supported as well."
+                            "description": "The content of the document in HTML format. For proper list nesting, ensure each <li> element properly contains its nested <ul> or <ol> as direct children. Example: <ul><li>Item 1<ul><li>Subitem</li></ul></li></ul>. Supports: <h1>-<h3> for headings (use h1 for document title, h2 for chapters/clauses, h3 for subchapters, <strong> for bold, <em> for italic, <a href='url'> for links, <table> with <tr>/<td> for tables, <ol> for ordered lists and <ul> for unordered lists."
                         }
                     },
-                    "required": ["markdown_content"]
+                    "required": ["html_content"]
                 }
             )
         ]
@@ -158,9 +158,9 @@ def create_server():
             ]
 
         elif name == "create-word-document":
-            markdown_text: str = arguments.get("markdown_content")
+            html: str = arguments.get("html_content")
 
-            url = markdown_to_word(markdown_text)
+            url = html_to_word(html)
 
             return [
                 types.TextContent(
@@ -173,3 +173,4 @@ def create_server():
             raise ValueError(f"Unknown tool: {name}")
 
     return server, init_options
+
