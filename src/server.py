@@ -113,13 +113,11 @@ def create_server():
                 name="create-word-document",
                 description="Creates a Word document (docx) from HTML input.",
                 inputSchema={
-                    "$schema": "http://json-schema.org/draft-07/schema#",
-                    "title": "Input schema for Word document creation tool",
                     "type": "object",
                     "properties": {
                         "html_content": {
                             "type": "string",
-                            "description": "The content of the document in HTML format. For proper list nesting, ensure each <li> element properly contains its nested <ul> or <ol> as direct children. Example: <ul><li>Item 1<ul><li>Subitem</li></ul></li></ul>. Supports: <h1>-<h3> for headings (use h1 for document title, h2 for chapters/clauses, h3 for subchapters, <strong> for bold, <em> for italic, <a href='url'> for links, <table> with <tr>/<td> for tables, <ol> for ordered lists and <ul> for unordered lists."
+                            "description": "The content in HTML format. For list nesting, ensure each <li> element contains nested <ul> or <ol> as direct children. Example: <ul><li>Item 1<ul><li>Subitem</li></ul></li></ul>. Supports: <h1>-<h3> for headings (h1 for document title, h2 for chapters/clauses (do not include numbering, it is included in word style), h3 for subchapters, <strong> for bold, <em> for italic, <a href='url'> for links, <table> with <tr>/<td> for tables, <ol> for ordered lists and <ul> for unordered lists. In case of legal documents, each clause must be in ordered list (numbering will be handled by word styles)."
                         }
                     },
                     "required": ["html_content"]
