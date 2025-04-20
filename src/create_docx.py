@@ -1,3 +1,5 @@
+from os.path import exists
+
 import markdown
 import io
 from docx import Document
@@ -7,6 +9,20 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.opc.constants import RELATIONSHIP_TYPE
 from upload_file import upload_file
+from pathlib import Path
+
+def load_templates():
+    """Loads presentation templates"""
+
+    custom_template = Path("/app/templates/template.docx")
+
+    if exists(custom_template):
+        template = custom_template
+
+    else:
+        template = Path("/app/src/template.docx")
+
+    return str(template)
 
 def add_heading(doc, element, level=1):
     """
@@ -208,8 +224,10 @@ def markdown_to_word(markdown_content):
     except Exception as e:
         return f"Error in markdown: {e}"
 
+    path = load_templates()
+
     # Creating a new Word Document
-    doc = Document("template.docx")
+    doc = Document(path)
 
     # Converting HTML to text and add it to the Word Document
     soup = BeautifulSoup(html_content, 'html.parser')
