@@ -106,4 +106,5 @@ def upload_to_local_folder(file_object, file_name):
     with open(save_path, 'wb') as f:
         f.write(file_object.read())
 
+
     return f"Inform user that the document {file_name} was saved to his output folder."

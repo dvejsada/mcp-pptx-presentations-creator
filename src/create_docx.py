@@ -149,6 +149,7 @@ def child_elements(element, paragraph):
             # Handle any other element with text
             paragraph.add_run(child.text)
 
+
 def process_list(list_element, doc, base_style, level=0):
     """
     Process a list element (ul or ol) and handle nested lists of any type.
@@ -163,26 +164,31 @@ def process_list(list_element, doc, base_style, level=0):
     bullet_styles = ['List Bullet', 'List Bullet 2', 'List Bullet 3']
     number_styles = ['List Number', 'List Number 2', 'List Number 3']
 
-    # Determine which style to use based on the list type and level
-    if base_style.startswith('List Bullet'):
-        style = bullet_styles[min(level, len(bullet_styles) - 1)]
-    else:  # List Number
-        style = number_styles[min(level, len(number_styles) - 1)]
+    # Determine which style array to use based on the list type
+    style_array = bullet_styles if base_style.startswith('List Bullet') else number_styles
+
+    # Get the appropriate style for this level
+    style = style_array[min(level, len(style_array) - 1)]
 
     # Process each list item
     for li in list_element.find_all('li', recursive=False):
         # Create paragraph with appropriate list style
         par = doc.add_paragraph(style=style)
 
-        # Process the direct content of the list item (excluding nested lists)
+        # Add the content of the list item (excluding nested lists)
         process_list_item_content(li, par)
 
-        # Process any nested lists regardless of type
+        # Process any nested lists
         for nested_list in li.find_all(['ul', 'ol'], recursive=False):
             if nested_list.name == 'ul':
-                process_list(nested_list, doc, 'List Bullet', level + 1)
+                # For nested bullets, increment level if parent is also bullets
+                nested_level = level + 1 if base_style.startswith('List Bullet') else 0
+                process_list(nested_list, doc, 'List Bullet', nested_level)
             else:  # ol
-                process_list(nested_list, doc, 'List Number', level + 1)
+                # For nested numbers, increment level if parent is also numbers
+                nested_level = level + 1 if base_style.startswith('List Number') else 0
+                process_list(nested_list, doc, 'List Number', nested_level)
+
 
 def process_list_item_content(li, paragraph):
     """
@@ -200,7 +206,7 @@ def process_list_item_content(li, paragraph):
         if isinstance(child, str):
             # If it's plain text, add it as a run
             if child.strip():
-                paragraph.add_run(child)
+                paragraph.add_run(child.strip())  # Strip whitespace
         elif child.name == 'strong':
             paragraph.add_run(child.text).bold = True
         elif child.name == 'em':

@@ -160,7 +160,14 @@ def create_server():
         elif name == "create-word-document":
             markdown_text: str = arguments.get("markdown_content")
 
-            markdown_to_word(markdown_text)
+            url = markdown_to_word(markdown_text)
+
+            return [
+                types.TextContent(
+                    type="text",
+                    text=url
+                )
+            ]
 
         else:
             raise ValueError(f"Unknown tool: {name}")
