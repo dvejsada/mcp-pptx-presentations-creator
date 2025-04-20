@@ -1,5 +1,4 @@
 from os.path import exists
-
 import markdown
 import io
 from docx import Document
