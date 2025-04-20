@@ -3,8 +3,7 @@ from mcp.server import Server, NotificationOptions
 from mcp.server.models import InitializationOptions
 from create_pptx import create_presentation
 import logging
-
-from src.create_docx import markdown_to_word
+from create_docx import markdown_to_word
 
 
 def create_server():
