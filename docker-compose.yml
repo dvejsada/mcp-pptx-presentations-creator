@@ -1,7 +1,7 @@
 services:
   mcp-presentation:
-    image: georgx22/mcp-presentations:latest
-    container_name: mcp-presentations
+    image: georgx22/mcp-office-docs:latest
+    container_name: mcp-office-docs
     restart: always
     ports:
       - "8958:8958"
@@ -13,3 +13,4 @@ services:
       S3_BUCKET: Name of your AWS S3 bucket # Required for S3 upload strategy
     volumes:
       - <host_path>:/app/output # Directory to save created presentations to, required for LOCAL upload strategy
+      - <host_path>:/app/templates # Directory with custom templates, if used
