@@ -117,7 +117,7 @@ def create_server():
                     "properties": {
                         "html_content": {
                             "type": "string",
-                            "description": "The content in HTML format. For list nesting, ensure each <li> element contains nested <ul> or <ol> as direct children. Example: <ul><li>Item 1<ul><li>Subitem</li></ul></li></ul>. Supports: <h1>-<h3> for headings (h1 for document title, h2 for chapters/clauses (do not include numbering, it is included in word style), h3 for subchapters, <strong> for bold, <em> for italic, <a href='url'> for links, <table> with <tr>/<td> for tables, <ol> for ordered lists and <ul> for unordered lists. In case of legal documents, each clause must be in ordered list (numbering will be handled by word styles)."
+                            "description": "Content in HTML 5 format. Do not include any numbering in text. Supports: <h1>-<h3> for headings (h1 for title, h2 for chapter/clause titles, h3 for subchapter titles, <strong> for bold, <em> for italic, <a href='url'> for links, <table> with <tr>/<td> for tables, <ol> for ordered lists and <ul> for unordered lists. For list nesting, ensure each <li> element contains nested <ul> or <ol> as direct children, e.g. <ul><li>Item 1<ul><li>Subitem</li></ul></li></ul>. For legal document (contract etc.), each clause, except for definition of parties, must be part of ordered list, e.g. <h2>Final Provisions</h2><ol><li>This contract is valid from 1 January 2026</li><li>Contract is drown in 2 originals</li></ol>."
                         }
                     },
                     "required": ["html_content"]
