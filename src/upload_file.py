@@ -71,9 +71,9 @@ def upload_to_s3(file_object, file_name):
     if "pptx" in file_name:
         content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     elif "docx" in file_name:
-        content_type = ""
-    elif "msg" in file_name:
-        content_type = ""
+        content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    elif "eml" in file_name:
+        content_type = "application/octet-stream"
     else:
         raise ValueError("Unknown file type")
 
