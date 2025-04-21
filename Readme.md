@@ -36,7 +36,7 @@ In your librechat.yaml file, add the following section:
 
 ```yaml
 mcpServers:
-  media-creator:
+  office-docs:
     type: sse # type can optionally be omitted
     url: # URL of your docker container e.g. http://localhost:8958/sse
     timeout: 120000 # the generation of docx content may take longer time
