@@ -1,5 +1,5 @@
 services:
-  mcp-presentation:
+  mcp-office-docs:
     image: georgx22/mcp-office-docs:latest
     container_name: mcp-office-docs
     restart: always
