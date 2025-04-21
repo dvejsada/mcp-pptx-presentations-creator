@@ -4,6 +4,7 @@ from mcp.server.models import InitializationOptions
 from create_pptx import create_presentation
 import logging
 from create_docx import html_to_word
+from create_msg import create_eml
 
 
 def create_server():
@@ -17,7 +18,7 @@ def create_server():
 
     init_options = InitializationOptions(
         server_name="mcp-office-documents",
-        server_version="0.1",
+        server_version="0.2",
         capabilities=server.get_capabilities(
             notification_options=NotificationOptions(),
             experimental_capabilities={},
@@ -122,6 +123,45 @@ def create_server():
                     },
                     "required": ["html_content"]
                 }
+            ),
+            types.Tool(
+                name="create-email-draft",
+                description="Creates an email draft.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "to": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "List of recipient email addresses."
+                        },
+                        "cc": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "List of carbon copy recipient email addresses."
+                        },
+                        "bcc": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "List of blind carbon copy recipient email addresses."
+                        },
+                        "re": {
+                            "type": "string",
+                            "description": "Subject of the email."
+                        },
+                        "content": {
+                            "type": "string",
+                            "description": "HTML content for body of the email. Must contain valid HTML markup (paragraphs, lists, etc.) without the enclosing <html>, <head>, or <body> tags. Do not use header tags. Example: <p>Hello</p><p>This is <b>valid</b> point for our <u>discussion</u>.</p><p>We consider <ol><li>Point 1</li><li>Point 2</li></ol></p><p><b>Subheader</b></p><p>Also note this: <ul><li>Note 1</li><li>Note 2</li><ul></p><p>Kind regards</p>"
+                        }
+                    },
+                    "required": ["re", "content"]
+                }
             )
         ]
 
@@ -159,6 +199,26 @@ def create_server():
             html: str = arguments.get("html_content")
 
             url = html_to_word(html)
+
+            return [
+                types.TextContent(
+                    type="text",
+                    text=url
+                )
+            ]
+
+        elif name == "create-email-draft":
+
+            to: list = list(arguments.get("to", []))
+            cc: list = list(arguments.get("cc", []))
+            bcc: list = list(arguments.get("bcc", []))
+            re: str = arguments.get("re")
+            content: str = arguments.get("content")
+
+            if not re or not content:
+                raise ValueError("Missing argument re or content")
+
+            url = create_eml(to, cc, bcc, re, content)
 
             return [
                 types.TextContent(
