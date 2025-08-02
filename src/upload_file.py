@@ -72,6 +72,8 @@ def upload_to_s3(file_object, file_name):
         content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     elif "docx" in file_name:
         content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    elif "xlsx" in file_name:
+        content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     elif "eml" in file_name:
         content_type = "application/octet-stream"
     else:
